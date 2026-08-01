@@ -293,6 +293,12 @@ connectWalletBtn.addEventListener('click', async () => {
     walletStatusEl.textContent = 'Bağlandı: ' + shortAddress(myWalletAddress);
     walletStatusEl.classList.add('connected');
     findMatchBtn.disabled = false;
+    toggleFriendModeBtn.disabled = false;
+
+    if (!unsubscribeInvites) {
+      const { listenForInvites } = await import('./multiplayer.js');
+      unsubscribeInvites = listenForInvites(myWalletAddress, { onInvites: renderIncomingInvites });
+    }
   } catch (err) {
     walletStatusEl.textContent = 'Cüzdan bağlanamadı: ' + (err.message || 'bilinmeyen hata');
   } finally {
@@ -317,28 +323,116 @@ findMatchBtn.addEventListener('click', async () => {
       matchmakingText.textContent =
         count > 1 ? 'Rakip bulundu, oyun kuruluyor...' : 'Aynı miktarı seçen bir rakip aranıyor...';
     },
-    onMatched: async (gameId, playerId) => {
-      onlineGameId = gameId;
-      onlinePlayerId = playerId;
+    onMatched: (gameId, playerId) => {
       cancelMatchmaking = null;
-      resolveTriggered = false;
-      const { subscribeToGame, markPresence } = await import('./multiplayer.js');
-      unsubscribeGame = subscribeToGame(gameId, playerId, {
-        onState: (payload) => {
-          if (unsubscribeGame && !payload._presenceMarked) {
-            markPresence(gameId, payload.myColor);
-            payload._presenceMarked = true;
-          }
-          renderOnlineState(payload);
-        },
-        onError: () => updateStatus('Bağlantı hatası, tekrar dene.'),
-      });
+      enterGame(gameId, playerId);
     },
     onError: () => {
       matchmakingText.textContent = 'Bir hata oluştu, tekrar dene.';
     },
   });
 });
+
+async function enterGame(gameId, playerId) {
+  onlineGameId = gameId;
+  onlinePlayerId = playerId;
+  resolveTriggered = false;
+  const { subscribeToGame, markPresence } = await import('./multiplayer.js');
+  unsubscribeGame = subscribeToGame(gameId, playerId, {
+    onState: (payload) => {
+      if (unsubscribeGame && !payload._presenceMarked) {
+        markPresence(gameId, payload.myColor);
+        payload._presenceMarked = true;
+      }
+      renderOnlineState(payload);
+    },
+    onError: () => updateStatus('Bağlantı hatası, tekrar dene.'),
+  });
+}
+
+// ---------- friend invites (play a specific wallet address instead of the anonymous queue) ----------
+
+const toggleFriendModeBtn = document.getElementById('toggleFriendModeBtn');
+const friendInviteRowEl = document.getElementById('friendInviteRow');
+const friendAddressInput = document.getElementById('friendAddressInput');
+const sendInviteBtn = document.getElementById('sendInviteBtn');
+const incomingInvitesEl = document.getElementById('incomingInvites');
+
+let unsubscribeInvites = null;
+
+function isValidAddress(addr) {
+  return /^0x[a-fA-F0-9]{40}$/.test(addr || '');
+}
+
+toggleFriendModeBtn.addEventListener('click', () => {
+  friendInviteRowEl.classList.toggle('hidden');
+});
+
+sendInviteBtn.addEventListener('click', async () => {
+  const amount = Number(stakeInput.value || '1');
+  const opponentAddress = friendAddressInput.value.trim();
+  if (!amount || amount < 0.5) {
+    stakeInput.focus();
+    return;
+  }
+  if (!isValidAddress(opponentAddress)) {
+    friendAddressInput.focus();
+    return;
+  }
+  if (!myWalletAddress) return;
+
+  sendInviteBtn.disabled = true;
+  try {
+    const { createInvite } = await import('./multiplayer.js');
+    const { gameId, playerId } = await createInvite(amount, myWalletAddress, undefined, opponentAddress);
+    friendInviteRowEl.classList.add('hidden');
+    await enterGame(gameId, playerId);
+  } catch (err) {
+    // surfaced implicitly: enterGame's onError sets the shared status text
+  } finally {
+    sendInviteBtn.disabled = false;
+  }
+});
+
+function renderIncomingInvites(invites) {
+  incomingInvitesEl.innerHTML = '';
+  for (const invite of invites) {
+    const card = document.createElement('div');
+    card.className = 'invite-card';
+
+    const text = document.createElement('p');
+    const dollars = (invite.stakeUsdcBaseUnits / 1_000_000).toString();
+    text.textContent = shortAddress(invite.fromWalletAddress) + ' seninle $' + dollars + ' için oynamak istiyor';
+    card.appendChild(text);
+
+    const actions = document.createElement('div');
+    actions.className = 'invite-card-actions';
+
+    const acceptBtn = document.createElement('button');
+    acceptBtn.className = 'btn btn-primary';
+    acceptBtn.textContent = 'Kabul Et';
+    acceptBtn.addEventListener('click', async () => {
+      acceptBtn.disabled = true;
+      const { acceptInvite } = await import('./multiplayer.js');
+      const playerId = await acceptInvite(invite.gameId, myWalletAddress);
+      await enterGame(invite.gameId, playerId);
+    });
+
+    const declineBtn = document.createElement('button');
+    declineBtn.className = 'btn btn-ghost';
+    declineBtn.textContent = 'Reddet';
+    declineBtn.addEventListener('click', async () => {
+      declineBtn.disabled = true;
+      const { declineInvite } = await import('./multiplayer.js');
+      await declineInvite(invite.gameId, myWalletAddress);
+    });
+
+    actions.appendChild(acceptBtn);
+    actions.appendChild(declineBtn);
+    card.appendChild(actions);
+    incomingInvitesEl.appendChild(card);
+  }
+}
 
 cancelMatchBtn.addEventListener('click', () => {
   stopOnlineListeners();
@@ -374,6 +468,15 @@ function renderOnlineState({ gameData, state, myColor, isMyTurn }) {
 
   if (gameData.status === 'waiting_deposits') {
     renderDepositScreen(gameData, myColor);
+    return;
+  }
+
+  if (gameData.status === 'declined') {
+    stopOnlineListeners();
+    onlineGameId = null;
+    onlinePlayerId = null;
+    showScreen('stake');
+    depositStatusEl.textContent = 'Davet reddedildi.';
     return;
   }
 

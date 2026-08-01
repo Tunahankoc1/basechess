@@ -30,11 +30,21 @@
       <p class="subtitle">Ödül miktarını seç</p>
       <div id="walletStatus" class="status">Cüzdan bağlı değil</div>
       <button id="connectWalletBtn" class="btn btn-secondary">Cüzdanı Bağla</button>
+
+      <div id="incomingInvites"></div>
+
       <div class="stake-row">
         <span class="stake-prefix">$</span>
         <input id="stakeInput" type="number" min="0.5" step="0.5" placeholder="1" inputmode="decimal" />
       </div>
       <button id="findMatchBtn" class="btn btn-primary" disabled>Rakip Bul</button>
+
+      <button id="toggleFriendModeBtn" class="btn btn-ghost" disabled>veya arkadaşını davet et</button>
+      <div id="friendInviteRow" class="hidden">
+        <input id="friendAddressInput" type="text" placeholder="Arkadaşının cüzdan adresi (0x...)" />
+        <button id="sendInviteBtn" class="btn btn-secondary">Davet Gönder</button>
+      </div>
+
       <button id="backFromStakeBtn" class="btn btn-ghost">Geri</button>
       <p class="note">Base mainnet + gerçek USDC kullanılıyor. Oyun bitince sonucu bu uygulama doğrulayıp ödemeyi otomatik yapar (hakem gibi).</p>
     </div>

@@ -27,7 +27,7 @@ function getDb() {
   return db;
 }
 
-function getPlayerId() {
+export function getPlayerId() {
   let id = localStorage.getItem('baseChessPlayerId');
   if (!id) {
     id = 'p-' + Math.random().toString(36).slice(2) + Date.now().toString(36);
@@ -137,6 +137,89 @@ export function findMatch(stakeAmount, walletAddress, { displayName, onWaiting, 
     off(queueRef, 'value', queueListener);
     remove(myEntryRef).catch(() => {});
   };
+}
+
+// Direct 1-on-1 invite by wallet address, for playing a specific friend
+// instead of the anonymous stake-matched queue. Creates the game record
+// immediately (so the deposit screen works the same way for both paths) and
+// leaves a pointer under /invites/{opponent address} for their client to find.
+export async function createInvite(stakeAmount, myWalletAddress, displayName, opponentWalletAddress) {
+  const database = getDb();
+  const playerId = getPlayerId();
+  const stakeUsdcBaseUnits = Math.round(Number(stakeAmount) * 1_000_000);
+  const gameRef = push(ref(database, 'games'));
+  const gameId = gameRef.key;
+  const opponentKey = opponentWalletAddress.toLowerCase();
+
+  await set(gameRef, {
+    stakeUsdcBaseUnits,
+    status: 'waiting_deposits',
+    isInvite: true,
+    createdAt: serverTimestamp(),
+    players: {
+      white: { playerId, walletAddress: myWalletAddress, displayName: displayName || 'Oyuncu' },
+      black: { playerId: null, walletAddress: opponentWalletAddress, displayName: null },
+    },
+    deposits: {
+      white: { deposited: false, txHash: null },
+      black: { deposited: false, txHash: null },
+    },
+    moves: null,
+    turn: WHITE,
+    result: null,
+    presence: {
+      white: { online: true },
+      black: { online: false },
+    },
+  });
+
+  await set(ref(database, `invites/${opponentKey}/${gameId}`), {
+    fromWalletAddress: myWalletAddress,
+    fromDisplayName: displayName || 'Oyuncu',
+    stakeUsdcBaseUnits,
+    createdAt: serverTimestamp(),
+  });
+
+  return { gameId, playerId };
+}
+
+// Watches for invites addressed to my wallet address (case-insensitive key).
+export function listenForInvites(myWalletAddress, { onInvites }) {
+  const database = getDb();
+  const invitesRef = ref(database, `invites/${myWalletAddress.toLowerCase()}`);
+  const listener = onValue(invitesRef, (snapshot) => {
+    const data = snapshot.val() || {};
+    const invites = Object.entries(data).map(([gameId, invite]) => ({ gameId, ...invite }));
+    onInvites(invites);
+  });
+  return function unsubscribe() {
+    off(invitesRef, 'value', listener);
+  };
+}
+
+export async function acceptInvite(gameId, myWalletAddress, displayName) {
+  const database = getDb();
+  const playerId = getPlayerId();
+  await update(ref(database, `games/${gameId}/players/black`), {
+    playerId,
+    walletAddress: myWalletAddress,
+    displayName: displayName || 'Oyuncu',
+  });
+  await update(ref(database, `games/${gameId}/presence/black`), { online: true });
+  await remove(ref(database, `invites/${myWalletAddress.toLowerCase()}/${gameId}`));
+  return playerId;
+}
+
+export async function declineInvite(gameId, myWalletAddress) {
+  const database = getDb();
+  await remove(ref(database, `invites/${myWalletAddress.toLowerCase()}/${gameId}`));
+  await update(ref(database, `games/${gameId}`), { status: 'declined' });
+}
+
+export async function cancelInvite(gameId, opponentWalletAddress) {
+  const database = getDb();
+  await remove(ref(database, `invites/${opponentWalletAddress.toLowerCase()}/${gameId}`));
+  await update(ref(database, `games/${gameId}`), { status: 'declined' });
 }
 
 export async function markDeposited(gameId, color, txHash) {

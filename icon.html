@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8" />
+  <title>Icon & Preview Oluşturucu</title>
+  <style>
+    body {
+      font-family: -apple-system, sans-serif;
+      background: #111;
+      color: #fff;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 24px;
+      padding: 40px 20px;
+    }
+    canvas {
+      border-radius: 12px;
+      border: 1px solid #333;
+    }
+    a.btn {
+      display: inline-block;
+      margin-top: 10px;
+      background: #0052ff;
+      color: #fff;
+      text-decoration: none;
+      padding: 10px 18px;
+      border-radius: 10px;
+      font-weight: 600;
+    }
+    .block {
+      text-align: center;
+    }
+  </style>
+</head>
+<body>
+  <h1>Base Chess - Icon &amp; Preview</h1>
+
+  <div class="block">
+    <h3>icon.png (200x200)</h3>
+    <canvas id="iconCanvas" width="200" height="200"></canvas>
+    <br />
+    <a id="iconLink" class="btn" download="icon.png">Download icon.png</a>
+  </div>
+
+  <div class="block">
+    <h3>preview.png (600x400)</h3>
+    <canvas id="previewCanvas" width="600" height="400"></canvas>
+    <br />
+    <a id="previewLink" class="btn" download="preview.png">Download preview.png</a>
+  </div>
+
+  <script>
+    function drawCheckerboard(ctx, x, y, size, squares) {
+      const cell = size / squares;
+      for (let r = 0; r < squares; r++) {
+        for (let c = 0; c < squares; c++) {
+          ctx.fillStyle = (r + c) % 2 === 0 ? 'rgba(255,255,255,0.14)' : 'rgba(255,255,255,0.04)';
+          ctx.fillRect(x + c * cell, y + r * cell, cell, cell);
+        }
+      }
+    }
+
+    function drawIcon(ctx, w, h) {
+      const grad = ctx.createLinearGradient(0, 0, 0, h);
+      grad.addColorStop(0, '#0052ff');
+      grad.addColorStop(1, '#001a66');
+      ctx.fillStyle = grad;
+      ctx.fillRect(0, 0, w, h);
+
+      drawCheckerboard(ctx, 0, 0, w, 8);
+
+      ctx.fillStyle = '#ffffff';
+      ctx.font = Math.floor(h * 0.6) + 'px sans-serif';
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.fillText('♞', w / 2, h / 2 + h * 0.03);
+    }
+
+    function drawPreview(ctx, w, h) {
+      const grad = ctx.createLinearGradient(0, 0, 0, h);
+      grad.addColorStop(0, '#0052ff');
+      grad.addColorStop(1, '#001a66');
+      ctx.fillStyle = grad;
+      ctx.fillRect(0, 0, w, h);
+
+      drawCheckerboard(ctx, 0, 0, w, 10);
+
+      ctx.fillStyle = '#ffffff';
+      ctx.font = Math.floor(h * 0.38) + 'px sans-serif';
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.fillText('♞', w / 2, h * 0.4);
+
+      ctx.font = 'bold ' + Math.floor(h * 0.09) + 'px sans-serif';
+      ctx.fillText('Base Chess', w / 2, h * 0.76);
+
+      ctx.fillStyle = '#cdd8ff';
+      ctx.font = Math.floor(h * 0.05) + 'px sans-serif';
+      ctx.fillText('Bilgisayara karşı satranç', w / 2, h * 0.87);
+    }
+
+    const iconCanvas = document.getElementById('iconCanvas');
+    const previewCanvas = document.getElementById('previewCanvas');
+
+    drawIcon(iconCanvas.getContext('2d'), 200, 200);
+    drawPreview(previewCanvas.getContext('2d'), 600, 400);
+
+    document.getElementById('iconLink').href = iconCanvas.toDataURL('image/png');
+    document.getElementById('previewLink').href = previewCanvas.toDataURL('image/png');
+  </script>
+</body>
+</html>

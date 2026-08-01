@@ -1,0 +1,26 @@
+{
+  "accountAssociation": {
+    "header": "[FARCASTER'DAN ALINACAK]",
+    "payload": "[FARCASTER'DAN ALINACAK]",
+    "signature": "[FARCASTER'DAN ALINACAK]"
+  },
+  "frame": {
+    "version": "1",
+    "name": "Base Chess",
+    "subtitle": "Bilgisayara karşı satranç",
+    "description": "Base ağı üzerinde çalışan, bilgisayara karşı hızlıca satranç oynayabileceğin bir mini uygulama.",
+    "iconUrl": "https://[DOMAIN]/icon.png",
+    "homeUrl": "https://[DOMAIN]",
+    "imageUrl": "https://[DOMAIN]/preview.png",
+    "splashImageUrl": "https://[DOMAIN]/icon.png",
+    "splashBackgroundColor": "#000000",
+    "primaryCategory": "games",
+    "tags": ["game", "chess", "arcade", "farcaster"],
+    "tagline": "Satranç oyna, kazan",
+    "heroImageUrl": "https://[DOMAIN]/preview.png",
+    "screenshotUrls": ["https://[DOMAIN]/preview.png"],
+    "ogTitle": "Base Chess",
+    "ogDescription": "Base ağı üzerinde bilgisayara karşı satranç oyna.",
+    "ogImageUrl": "https://[DOMAIN]/preview.png"
+  }
+}

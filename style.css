@@ -1,0 +1,228 @@
+* {
+  box-sizing: border-box;
+}
+
+html, body {
+  margin: 0;
+  padding: 0;
+  height: 100%;
+  overflow-x: hidden;
+}
+
+body {
+  background: linear-gradient(180deg, #0052ff 0%, #001a66 100%);
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 100vh;
+}
+
+#app {
+  width: 100%;
+  max-width: 460px;
+  padding: 20px;
+  text-align: center;
+}
+
+h1 {
+  margin: 0 0 12px;
+  font-size: 26px;
+}
+
+.status {
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 12px;
+  padding: 10px 14px;
+  font-size: 14px;
+  font-weight: 600;
+  margin-bottom: 14px;
+  min-height: 20px;
+}
+
+.board {
+  display: grid;
+  grid-template-columns: repeat(8, 1fr);
+  grid-template-rows: repeat(8, 1fr);
+  width: 100%;
+  aspect-ratio: 1 / 1;
+  border-radius: 10px;
+  overflow: hidden;
+  border: 3px solid #001a66;
+  user-select: none;
+  touch-action: manipulation;
+}
+
+.square {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: clamp(20px, 7.5vw, 38px);
+  cursor: pointer;
+  position: relative;
+  line-height: 1;
+}
+
+.square.light {
+  background: #eef1f8;
+}
+
+.square.dark {
+  background: #6f86c9;
+}
+
+.white-piece {
+  color: #ffffff;
+  text-shadow: 0 0 2px #000, 0 0 1px #000;
+}
+
+.black-piece {
+  color: #0a0a0a;
+  text-shadow: 0 0 1px rgba(255, 255, 255, 0.4);
+}
+
+.square.selected {
+  background: #ffcc00 !important;
+}
+
+.square.last-move {
+  box-shadow: inset 0 0 0 3px rgba(255, 204, 0, 0.7);
+}
+
+.square.in-check {
+  background: #ff5757 !important;
+}
+
+.square.move-target::after {
+  content: '';
+  position: absolute;
+  width: 28%;
+  height: 28%;
+  border-radius: 50%;
+  background: rgba(0, 0, 0, 0.28);
+}
+
+.square.capture-target::after {
+  content: '';
+  position: absolute;
+  inset: 6%;
+  border-radius: 50%;
+  box-shadow: inset 0 0 0 4px rgba(200, 0, 0, 0.55);
+}
+
+.btn {
+  border: none;
+  border-radius: 14px;
+  padding: 14px 20px;
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+  width: 100%;
+  margin-top: 16px;
+  transition: transform 0.1s ease, opacity 0.1s ease;
+}
+
+.btn:active {
+  transform: scale(0.97);
+}
+
+.btn-primary {
+  background: #ffffff;
+  color: #0052ff;
+}
+
+.btn-secondary {
+  background: #ffcc00;
+  color: #1a1a1a;
+}
+
+.btn-ghost {
+  background: rgba(255, 255, 255, 0.12);
+  color: #fff;
+}
+
+.hidden {
+  display: none;
+}
+
+.subtitle {
+  margin: 0 0 20px;
+  color: #cdd8ff;
+  font-size: 15px;
+}
+
+.note {
+  margin-top: 20px;
+  font-size: 12px;
+  color: #9fb0e6;
+}
+
+.stake-row {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 14px;
+  padding: 10px 16px;
+  margin-bottom: 6px;
+}
+
+.stake-prefix {
+  font-size: 22px;
+  font-weight: 700;
+}
+
+.stake-row input {
+  flex: 1;
+  border: none;
+  background: transparent;
+  color: #fff;
+  font-size: 22px;
+  font-weight: 700;
+  outline: none;
+  min-width: 0;
+}
+
+.stake-row input::placeholder {
+  color: rgba(255, 255, 255, 0.4);
+}
+
+.deposit-row {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 6px;
+}
+
+.deposit-chip {
+  flex: 1;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 12px;
+  padding: 10px 8px;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.deposit-chip.ready {
+  background: rgba(0, 255, 128, 0.2);
+}
+
+.btn:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
+
+.spinner {
+  width: 40px;
+  height: 40px;
+  margin: 0 auto 16px;
+  border-radius: 50%;
+  border: 4px solid rgba(255, 255, 255, 0.2);
+  border-top-color: #ffcc00;
+  animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}

@@ -1,0 +1,24 @@
+{
+  "name": "base-chess",
+  "version": "1.0.0",
+  "type": "module",
+  "scripts": {
+    "dev": "npx serve . -p 3000",
+    "compile": "hardhat compile",
+    "test": "hardhat test",
+    "deploy:sepolia": "hardhat ignition deploy ignition/modules/ChessEscrow.ts --network baseSepolia --parameters ignition/parameters/baseSepolia.json"
+  },
+  "devDependencies": {
+    "@nomicfoundation/hardhat-ignition": "^3.1.8",
+    "@nomicfoundation/hardhat-toolbox-viem": "^5.0.7",
+    "@openzeppelin/contracts": "^5.6.1",
+    "@types/node": "^26.1.1",
+    "dotenv": "^17.4.2",
+    "hardhat": "^3.10.0",
+    "serve": "^14.2.0",
+    "typescript": "^7.0.2"
+  },
+  "dependencies": {
+    "viem": "^2.55.4"
+  }
+}

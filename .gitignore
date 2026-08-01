@@ -1,0 +1,14 @@
+node_modules/
+
+# Compilation output
+/dist
+/artifacts
+/cache
+
+# Ignition run history (deployed-address bookkeeping) is fine to commit;
+# only ignore actual secrets below.
+.env
+.env.*
+!.env.example
+ignition/parameters/*.json
+!ignition/parameters/*.example.json

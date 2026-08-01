@@ -17,12 +17,40 @@
 </head>
 <body>
   <div id="app">
-    <h1>Base Chess</h1>
-
     <div id="modeSelectScreen" class="screen">
+      <div class="hero">
+        <svg viewBox="0 0 45 45" class="hero-king">
+          <rect x="21" y="3" width="3" height="9" rx="1"/>
+          <rect x="18" y="6.5" width="9" height="3" rx="1"/>
+          <path d="M13 14 L32 14 L33 18 L12 18 Z"/>
+          <path d="M13 18 L32 18 L34 31 L11 31 Z"/>
+          <rect x="10" y="31" width="25" height="5" rx="2"/>
+        </svg>
+      </div>
+      <h1>Base Chess</h1>
+      <div class="hero-badge">Base Mainnet · Gerçek USDC</div>
       <p class="subtitle">Nasıl oynamak istersin?</p>
-      <button id="practiceModeBtn" class="btn btn-primary">Bilgisayara Karşı</button>
-      <button id="onlineModeBtn" class="btn btn-secondary">Online — Ödüllü Oyna</button>
+
+      <button id="practiceModeBtn" class="mode-card">
+        <span class="mode-card-icon mode-card-icon-practice">
+          <svg viewBox="0 0 24 24"><rect x="5" y="8" width="14" height="11" rx="3"/><line x1="12" y1="8" x2="12" y2="4"/><circle cx="12" cy="3" r="1.4"/><rect x="1.5" y="11" width="2.2" height="4.5" rx="1.1"/><rect x="20.3" y="11" width="2.2" height="4.5" rx="1.1"/><circle cx="9.3" cy="13.6" r="1.4" class="eye"/><circle cx="14.7" cy="13.6" r="1.4" class="eye"/><rect x="9.5" y="16.6" width="5" height="1.3" rx="0.65" class="eye"/></svg>
+        </span>
+        <span class="mode-card-text">
+          <span class="mode-card-title">Bilgisayara Karşı</span>
+          <span class="mode-card-desc">Ücretsiz pratik, sınırsız oyna</span>
+        </span>
+      </button>
+
+      <button id="onlineModeBtn" class="mode-card mode-card-highlight">
+        <span class="mode-card-icon mode-card-icon-online">
+          <svg viewBox="0 0 24 24"><circle cx="9.5" cy="14" r="7.5" class="coin-back"/><circle cx="14.5" cy="10" r="7.5"/><text x="14.5" y="14" text-anchor="middle" class="coin-sign">$</text></svg>
+        </span>
+        <span class="mode-card-text">
+          <span class="mode-card-title">Online — Ödüllü Oyna</span>
+          <span class="mode-card-desc">Gerçek USDC ile rakibe karşı oyna</span>
+        </span>
+      </button>
+
       <p class="note">Online mod gerçek USDC ile oynanır — kaybedersen yatırdığın tutarı kaybedersin.</p>
     </div>
 

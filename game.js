@@ -256,7 +256,7 @@ function startPracticeGame() {
 practiceModeBtn.addEventListener('click', startPracticeGame);
 newGameBtn.addEventListener('click', startPracticeGame);
 
-// ---------- online mode (Firebase-synced 2-player + Base Sepolia USDC escrow) ----------
+// ---------- online mode (Firebase-synced 2-player + Base USDC escrow) ----------
 
 let cancelMatchmaking = null;
 let unsubscribeGame = null;

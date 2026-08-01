@@ -223,11 +223,14 @@ h1 {
   transform: scale(1.06);
 }
 
-.white-piece .piece-svg [class],
 .white-piece .piece-svg circle,
 .white-piece .piece-svg path,
 .white-piece .piece-svg rect,
-.white-piece .piece-svg polygon {
+.white-piece .piece-svg polygon,
+.white-piece .piece-svg-mini circle,
+.white-piece .piece-svg-mini path,
+.white-piece .piece-svg-mini rect,
+.white-piece .piece-svg-mini polygon {
   fill: #fbfbff;
   stroke: #1a1a2e;
   stroke-width: 1.2;
@@ -236,23 +239,30 @@ h1 {
 .black-piece .piece-svg circle,
 .black-piece .piece-svg path,
 .black-piece .piece-svg rect,
-.black-piece .piece-svg polygon {
+.black-piece .piece-svg polygon,
+.black-piece .piece-svg-mini circle,
+.black-piece .piece-svg-mini path,
+.black-piece .piece-svg-mini rect,
+.black-piece .piece-svg-mini polygon {
   fill: #191d2e;
   stroke: #050508;
   stroke-width: 1.2;
 }
 
-.piece-svg .bishop-slit {
+.piece-svg .bishop-slit,
+.piece-svg-mini .bishop-slit {
   stroke: inherit;
   stroke-width: 1.4;
 }
 
-.white-piece .piece-svg .knight-eye {
+.white-piece .piece-svg .knight-eye,
+.white-piece .piece-svg-mini .knight-eye {
   fill: #1a1a2e !important;
   stroke: none !important;
 }
 
-.black-piece .piece-svg .knight-eye {
+.black-piece .piece-svg .knight-eye,
+.black-piece .piece-svg-mini .knight-eye {
   fill: #eef1fb !important;
   stroke: none !important;
 }
@@ -314,18 +324,22 @@ h1 {
   justify-content: space-between;
   gap: 8px;
   margin-top: 10px;
-  min-height: 20px;
+  min-height: 30px;
+  background: #eef1fb;
+  border-radius: 10px;
+  padding: 5px 10px;
 }
 
 .captured-group {
   display: flex;
   flex-wrap: wrap;
-  gap: 1px;
+  align-content: center;
+  gap: 2px;
 }
 
 .captured-piece {
-  width: 16px;
-  height: 16px;
+  width: 17px;
+  height: 17px;
   display: inline-block;
 }
 

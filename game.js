@@ -308,7 +308,7 @@ connectWalletBtn.addEventListener('click', async () => {
 
 findMatchBtn.addEventListener('click', async () => {
   const amount = Number(stakeInput.value || '1');
-  if (!amount || amount < 0.5) {
+  if (!amount || amount <= 0) {
     stakeInput.focus();
     return;
   }
@@ -371,7 +371,7 @@ toggleFriendModeBtn.addEventListener('click', () => {
 sendInviteBtn.addEventListener('click', async () => {
   const amount = Number(stakeInput.value || '1');
   const opponentAddress = friendAddressInput.value.trim();
-  if (!amount || amount < 0.5) {
+  if (!amount || amount <= 0) {
     stakeInput.focus();
     return;
   }

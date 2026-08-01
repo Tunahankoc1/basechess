@@ -10,13 +10,103 @@ import {
   isInCheck,
   typeOf,
 } from './chess-rules.js';
+import { pieceShapeMarkup } from './pieces.js';
 
 const AI_DEPTH = 2;
 const VALUES = { P: 100, N: 320, B: 330, R: 500, Q: 900, K: 0 };
-const PIECE_UNICODE = {
-  wK: '♔', wQ: '♕', wR: '♖', wB: '♗', wN: '♘', wP: '♙',
-  bK: '♚', bQ: '♛', bR: '♜', bB: '♝', bN: '♞', bP: '♟',
-};
+
+function pieceSvg(piece) {
+  return (
+    '<svg viewBox="0 0 45 45" class="piece-svg">' + pieceShapeMarkup(typeOf(piece)) + '</svg>'
+  );
+}
+
+// ---------- move notation + captured-material tray (shared by both modes) ----------
+
+function squareName(r, c) {
+  return 'abcdefgh'[c] + (8 - r);
+}
+
+function moveToNotation(move, pieceType, isCapture, inCheck, isMate) {
+  const suffix = isMate ? '#' : inCheck ? '+' : '';
+  if (move.isCastle === 'king') return 'O-O' + suffix;
+  if (move.isCastle === 'queen') return 'O-O-O' + suffix;
+
+  const dest = squareName(move.to.r, move.to.c);
+  let body;
+  if (pieceType === 'P') {
+    body = isCapture ? 'abcdefgh'[move.from.c] + 'x' + dest : dest;
+    if (move.promotion) body += '=' + move.promotion;
+  } else {
+    body = pieceType + (isCapture ? 'x' : '') + dest;
+  }
+  return body + suffix;
+}
+
+// Replays a move list from scratch (needed for notation + captured pieces,
+// since move records only carry coordinates — the piece type has to be read
+// off the board state at the moment each move happened).
+function buildMoveHistory(moves) {
+  let state = initialState();
+  const history = [];
+  const capturedByWhite = [];
+  const capturedByBlack = [];
+
+  for (const move of moves) {
+    const piece = state.board[move.from.r][move.from.c];
+    const type = typeOf(piece);
+    const side = colorOf(piece);
+    const isCapture = !!move.captured || !!move.isEnPassant;
+    const capturedType = move.isEnPassant ? 'P' : move.captured;
+    if (isCapture) {
+      (side === WHITE ? capturedByWhite : capturedByBlack).push(capturedType);
+    }
+
+    const nextState = applyMove(state, move);
+    const inCheck = isInCheck(nextState, nextState.turn);
+    const isMate = inCheck && generateLegalMoves(nextState, true).length === 0;
+
+    history.push({ notation: moveToNotation(move, type, isCapture, inCheck, isMate), side });
+    state = nextState;
+  }
+
+  return { history, capturedByWhite, capturedByBlack };
+}
+
+const moveListEl = document.getElementById('moveList');
+const moveListWrapEl = document.getElementById('moveListWrap');
+const capturedRowEl = document.getElementById('capturedRow');
+
+function renderMoveHistoryAndCaptures(moves) {
+  const { history, capturedByWhite, capturedByBlack } = buildMoveHistory(moves);
+
+  moveListEl.innerHTML = '';
+  for (let i = 0; i < history.length; i += 2) {
+    const li = document.createElement('li');
+    const num = i / 2 + 1;
+    li.innerHTML =
+      '<span class="move-num">' + num + '.</span>' +
+      '<span class="move-w">' + (history[i]?.notation || '') + '</span>' +
+      '<span class="move-b">' + (history[i + 1]?.notation || '') + '</span>';
+    moveListEl.appendChild(li);
+  }
+  moveListWrapEl.scrollTop = moveListWrapEl.scrollHeight;
+
+  capturedRowEl.innerHTML = '';
+  // Trays show the actual color of the pieces taken (captured black pieces
+  // rendered in black styling, sitting on the side that captured them).
+  for (const [pieces, cssClass] of [[capturedByWhite, 'black-piece'], [capturedByBlack, 'white-piece']]) {
+    const group = document.createElement('div');
+    group.className = 'captured-group';
+    for (const type of pieces) {
+      const span = document.createElement('span');
+      span.className = 'captured-piece ' + cssClass;
+      span.innerHTML = '<svg viewBox="0 0 45 45" class="piece-svg-mini">' + pieceShapeMarkup(type) + '</svg>';
+      group.appendChild(span);
+    }
+    capturedRowEl.appendChild(group);
+  }
+}
 
 // ---------- practice-mode AI (minimax + alpha-beta, queen-promotion only) ----------
 
@@ -102,7 +192,7 @@ function renderBoard(state, { selected, legalTargets, onSquareClick, flip }) {
 
     const piece = state.board[r][c];
     if (piece) {
-      sq.textContent = PIECE_UNICODE[piece];
+      sq.innerHTML = pieceSvg(piece);
       sq.classList.add(colorOf(piece) === WHITE ? 'white-piece' : 'black-piece');
     }
     if (selected && selected.r === r && selected.c === c) sq.classList.add('selected');
@@ -119,6 +209,22 @@ function renderBoard(state, { selected, legalTargets, onSquareClick, flip }) {
     if (kingInCheckPos && kingInCheckPos.r === r && kingInCheckPos.c === c) {
       sq.classList.add('in-check');
     }
+
+    const isBottomRow = flip ? r === 0 : r === 7;
+    const isLeftCol = flip ? c === 7 : c === 0;
+    if (isLeftCol) {
+      const rankLabel = document.createElement('span');
+      rankLabel.className = 'coord coord-rank';
+      rankLabel.textContent = String(8 - r);
+      sq.appendChild(rankLabel);
+    }
+    if (isBottomRow) {
+      const fileLabel = document.createElement('span');
+      fileLabel.className = 'coord coord-file';
+      fileLabel.textContent = 'abcdefgh'[c];
+      sq.appendChild(fileLabel);
+    }
+
     if (onSquareClick) sq.addEventListener('click', () => onSquareClick(r, c));
     boardEl.appendChild(sq);
   }
@@ -166,6 +272,7 @@ let practiceGame = initialState();
 let practiceSelected = null;
 let practiceLegalTargets = [];
 let practiceGameOver = false;
+let practiceMoveHistory = [];
 const humanSide = WHITE;
 
 function renderPractice() {
@@ -174,6 +281,7 @@ function renderPractice() {
     legalTargets: practiceLegalTargets,
     onSquareClick: onPracticeSquareClick,
   });
+  renderMoveHistoryAndCaptures(practiceMoveHistory);
 }
 
 function onPracticeSquareClick(r, c) {
@@ -201,6 +309,7 @@ function onPracticeSquareClick(r, c) {
 }
 
 function performHumanMove(move) {
+  practiceMoveHistory.push(move);
   practiceGame = applyMove(practiceGame, move);
   practiceSelected = null;
   practiceLegalTargets = [];
@@ -217,6 +326,7 @@ function aiMove() {
     checkPracticeGameEnd();
     return;
   }
+  practiceMoveHistory.push(move);
   practiceGame = applyMove(practiceGame, move);
   renderPractice();
   checkPracticeGameEnd();
@@ -246,6 +356,7 @@ function startPracticeGame() {
   practiceSelected = null;
   practiceLegalTargets = [];
   practiceGameOver = false;
+  practiceMoveHistory = [];
   newGameBtn.classList.remove('hidden');
   leaveOnlineBtn.classList.add('hidden');
   showScreen('game');
@@ -493,6 +604,13 @@ function renderOnlineState({ gameData, state, myColor, isMyTurn }) {
     onSquareClick: gameData.status === 'active' ? onOnlineSquareClick : null,
     flip: myColor === BLACK,
   });
+
+  const orderedMoves = gameData.moves
+    ? Object.entries(gameData.moves)
+        .sort(([a], [b]) => (a < b ? -1 : a > b ? 1 : 0))
+        .map(([, m]) => m)
+    : [];
+  renderMoveHistoryAndCaptures(orderedMoves);
 
   if (gameData.status === 'finished' && gameData.result) {
     const { outcome, winner } = gameData.result;

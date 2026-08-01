@@ -68,7 +68,13 @@
 
     <div id="gameScreen" class="screen hidden">
       <div id="status" class="status">Sıra sende (Beyaz)</div>
-      <div id="board" class="board"></div>
+      <div class="board-frame">
+        <div id="board" class="board"></div>
+      </div>
+      <div id="capturedRow" class="captured-row"></div>
+      <div id="moveListWrap" class="move-list-wrap">
+        <ol id="moveList" class="move-list"></ol>
+      </div>
       <button id="newGameBtn" class="btn btn-primary hidden">Yeni Oyun</button>
       <button id="leaveOnlineBtn" class="btn btn-ghost hidden">Ana Menüye Dön</button>
     </div>
